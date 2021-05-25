@@ -1,0 +1,22 @@
+Hive-Hbase CARD_LOOKUP Table Creation( Bucketed Tables)
+
+--Card_lookup Bucketed Hive-HBase table
+
+create table card_lookup
+(
+member_id bigint,
+card_id bigint,
+ucl float,
+score float,
+last_txn_time timestamp,
+last_txn_zip string
+)
+CLUSTERED by (card_id) into 8 buckets
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH
+SERDEPROPERTIES("hbase.columns.mapping"=":key,lkp_data:member_id,
+lkp_data:ucl,
+lkp_data:score,
+lkp_data:last_txn_time,
+lkp_data:last_txn_zip")
+TBLPROPERTIES ("hbase.table.name" = "card_lookup");
