@@ -1,0 +1,56 @@
+Task:-4
+======
+
+==>Hive MEMBER_SCORE & MEMBER_DETAILS Tables Creation(External Tables and Bucketed Tables)
+
+==>
+--Enabling Bucketing
+SET HIVE.ENFORCE.BUCKETING=TRUE;
+
+--Member Score External Table
+
+create external table if not exists member_score(
+member_id string,
+score float)
+row format delimited fields terminated by ','
+stored as textfile
+location '/project_input_data/member_score/';
+
+
+--Member Details External Table
+
+create external table if not exists member_details
+(
+card_id bigint,
+member_id bigint,
+member_joining_dt timestamp,
+card_purchase_dt timestamp,
+country string,
+city string,
+score float
+)
+row format delimited fields terminated by ','
+stored as textfile
+location '/project_input_data/member_details/';
+
+
+
+==>--Member Score Bucketed Table(8 Buckets)
+
+create table if not exists member_score_bucketed(
+member_id string,
+score float)
+CLUSTERED BY (member_id) into 8 buckets;
+
+
+==>--Member Details Bucketed Table(8 Buckets)
+
+create table if not exists member_details_bucketed(
+card_id bigint,
+member_id bigint,
+member_joining_dt timestamp,
+card_purchase_dt timestamp,
+country string,
+city string,
+score float)
+CLUSTERED BY (card_id) into 8 buckets;
