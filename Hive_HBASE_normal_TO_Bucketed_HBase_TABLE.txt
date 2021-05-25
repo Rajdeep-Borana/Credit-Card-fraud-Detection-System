@@ -1,0 +1,43 @@
+--Hive-Hbase CARD_TRANSACTIONS  Tables  Creation(External  Tables  and Bucketed Tables)
+
+--Card_transactions external table
+
+create external table if not exists card_transactions
+(
+card_id bigint,
+member_id bigint,
+amount float,
+postcode int,
+pos_id bigint,
+transaction_dt timestamp,
+status string
+)
+row format delimited fields terminated by ','
+stored as textfile
+location '/project_input_data/card_transactions/';
+
+
+==>--Card_transactions  bucketed  Hive-HBase  table  with  rowkey  on  concatenated combination of card_id & transaction_dt columns to get all transactions
+
+create table card_transactions_bucketed
+(
+cardid_txnts string,
+card_id bigint,
+member_id bigint,
+amount float,
+postcode int,
+pos_id bigint,
+transaction_dt timestamp,
+status string
+)
+CLUSTERED by (card_id) into 8 buckets
+STORED BY 'org.apache.hadoop.hive.hbase.HBaseStorageHandler'
+WITH
+SERDEPROPERTIES("hbase.columns.mapping"=":key,trans_data:card_id,trans_data:member_id,trans_data:amount,
+trans_data:postcode,
+trans_data:pos_id,
+trans_data:transaction_dt,
+trans_data:status")
+TBLPROPERTIES("hbase.table.name" = "card_transactions");
+
+[Note- Rowkey is very important in HBase and make sure to choose it in right way]
