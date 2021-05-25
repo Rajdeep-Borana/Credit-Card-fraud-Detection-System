@@ -1,0 +1,70 @@
+TASK:-1 
+=======
+hadoop fs -put  /home/cloudera/Desktop/shared/card_transactions1.csv  /Project_Input_Data
+
+TASK:-2
+=======
+
+create table card_transactions_Staging
+	(
+	card_id bigint,
+	member_id bigint,
+	amount int,
+	postcode int,
+	pos_id bigint,
+	transaction_dt varchar(255),
+	status varchar(50)
+	);
+
+create table card_transactions
+	(
+	card_id bigint,
+	member_id bigint,
+	amount int,
+	postcode int,
+	pos_id bigint,
+	transaction_dt datetime,
+	status varchar(50),
+	primary key( card_id , transaction_dt )
+	);
+
+TASK:-3
+=======
+
+sqoop export \
+--connect jdbc:mysql://quickstart.cloudera:3306/Project \
+--username root \
+--password cloudera \
+--table card_transactions_Staging \
+--export-dir /Project_Input_Data/card_transactions1.csv \
+--fields-terminated-by ','
+
+ select count(*)  from  card_transactions;
+
+ select count(*)  from  card_transactions_Staging;
+
+ select *  from  card_transactions_Staging limit 10;
+
+ alter ignore table card_transactions_Staging
+ add unique index idx_card_txns (card_id , transaction_dt);
+
+ select card_id,transaction_dt,count(*) from card_transactions_Staging
+  group by card_id,transaction_dt having count(*) > 1;
+
+ select card_id,transaction_dt,count(*) from card_transactions_Staging   group by card_id,transaction_dt having count(*) > 1;
++------------------+---------------------+----------+
+| card_id          | transaction_dt      | count(*) |
++------------------+---------------------+----------+
+|  340028465709212 | 16-12-2017 19:55:40 |        2 |
+|  340134186926007 | 18-08-2017 15:28:48 |        2 |
+|  340379737226464 | 30-05-2016 09:09:11 |        2 |
+|  340383645652108 | 26-07-2017 12:42:40 |        2 |
+|  340803866934451 | 11-08-2017 00:00:00 |        4 |
+
+
+ alter table card_transactions_Staging drop index idx_card_txns;
+
+ insert into card_transactions
+	select card_id, member_id, amount, postcode, pos_id,
+	STR_TO_DATE(transaction_dt, '%d-%m-%Y %H:%i:%s'),status
+	from card_transactions_Staging;
